@@ -1,1 +1,1 @@
-sdk-location=${user.home}/android
+sdk.dir=${user.home}/android
