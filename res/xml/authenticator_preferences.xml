@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+<Preference android:enabled="true" android:key="username" android:selectable="true" android:title="Username"></Preference>
+<Preference android:enabled="true" android:key="password" android:selectable="true" android:title="@string/password"></Preference>
+</PreferenceScreen>

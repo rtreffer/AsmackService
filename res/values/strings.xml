@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <string name="password">Password</string>
+    <string name="label">XMPP Service</string>
+    <string name="authenticator_activity_username_label">Username</string>
+    <string name="authenticator_activity_password_label">Password</string>
+    <string name="authenticator_activity_ok_button_label">Login</string>
+<string name="authenticator_activity_try_login">Login</string>
+</resources>

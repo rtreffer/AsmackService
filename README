@@ -1,0 +1,31 @@
+= AsmackService - A xmpp service for Android =
+
+== Connections ==
+
+=== TCP ===
+
+Plain connection and feature negotiation:
+
+tcp:ipv4
+tcp:ipv4:port
+tcp:[ipv6]
+tcp:[ipv6]:port
+tcp:domain
+tcp:domain:port
+
+=== Xmpp ===
+
+XMPP connection as specified in the RFC.
+The key feature is a DNS/SRV lookup for the target domain,
+with tcp fallback.
+
+xmpp:domain
+
+== Connection Config ==
+
+Connection string plus settings (e.g. maximum idle time before ping)
+
+== Accounts ==
+
+An account is a credentials pair (jid + pwd) associated with a connection
+string.
