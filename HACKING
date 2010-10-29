@@ -1,0 +1,35 @@
+= Accounts =
+
+Accounts keep the basic user information:
+- JID
+- Password
+- connection string
+
+= Connection Strings =
+
+AsmackService uses connection strings that borrow ideas from database
+connection strings.
+
+Currently supported schemas:
+- tcp:ipv4
+- tcp:ipv4:port
+- tcp:[ipv6]
+- tcp:[ipv6]:port
+- tcp:domain
+- tcp:domain:port
+- xmpp:domain
+where xmpp performs a DNS/SRV lookup.
+
+= Core stanza receiving =
+
+All connections are currently ending with a XmppInputStream.
+A PullToPush thread calls nextStanza (which is delegated to XMLUtils) to get a
+single XML fragment.
+
+This fragment is then broadcasted by the XMPP transport service.
+
+= Core stanza sending =
+
+XMPPTransportService looks for the correct connection and calls send on the
+connection instance. The connection instance checks the xml structure and sends
+a raw text block after verification.

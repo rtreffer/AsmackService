@@ -1,31 +1,37 @@
-= AsmackService - A xmpp service for Android =
+= AsmackService =
 
-== Connections ==
+AsmackService is a xmpp service for Android
 
-=== TCP ===
+= Goals =
 
-Plain connection and feature negotiation:
-
-tcp:ipv4
-tcp:ipv4:port
-tcp:[ipv6]
-tcp:[ipv6]:port
-tcp:domain
-tcp:domain:port
-
-=== Xmpp ===
-
-XMPP connection as specified in the RFC.
-The key feature is a DNS/SRV lookup for the target domain,
-with tcp fallback.
-
-xmpp:domain
-
-== Connection Config ==
-
-Connection string plus settings (e.g. maximum idle time before ping)
+- A stable XMPP connection
+- System wide usable
+- Well integrated into the Android system
+- non-obstrusive regarding code and ui
 
 == Accounts ==
 
-An account is a credentials pair (jid + pwd) associated with a connection
-string.
+Accounts are integrated into the android account system. "Add Account" should
+be used to add new XMPP accounts.
+
+== Rosters ==
+
+Rosters are fetched during the system wide contact sync.
+
+== Keepalive ==
+
+Activity on the input stream is measured. The system wide minute event is used
+to enforce activity (xep/ping is always answered by 
+
+== Stanza Broadcasts / Stability ==
+
+Every received stanza is broadcasted to all interrested apps. Crashing apps
+can't terminate the connection.
+
+All broadcasted elements contain all toplevel attributes for easy filtering
+without a xml parser.
+
+== Compression ==
+
+Is done with Java7 APIs that ship with recent android devices.
+Feature detection is done with reflection.
