@@ -201,6 +201,9 @@ public class TcpConnection implements Connection {
         SocketFactory socketFactory = SocketFactory.getDefault();
         try {
             socket = socketFactory.createSocket(addresse, port);
+            socket.setKeepAlive(false);
+            socket.setSoTimeout(3*60*1000);
+            socket.setTcpNoDelay(true);
         } catch (IOException e) {
             throw new XmppTransportException("Can't connect", e);
         }
