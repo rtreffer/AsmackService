@@ -122,11 +122,21 @@ public class AccountConnection {
     private final StanzaSink stanzaSink;
 
     /**
+     * The connection listener that will receive all state changes.
+     */
+    private final ConnectionStateChangeListener listener;
+
+    /**
      * Create a new Account/Connection pair with the given stanza sink.
      * @param stanzaSink The final stanza sink.
+     * @param listener The state change listener.
      */
-    public AccountConnection(StanzaSink stanzaSink) {
+    public AccountConnection(
+        StanzaSink stanzaSink,
+        ConnectionStateChangeListener listener
+     ) {
         this.stanzaSink = stanzaSink;
+        this.listener = listener;
     }
 
     /**
@@ -184,24 +194,28 @@ public class AccountConnection {
         Log.d(TAG, "State transition from " + currentState + " -> " + state + " on " + account.getJid());
         switch(state) {
         case Start:
+            listener.onConnectionStart(this);
             break;
         case Connecting:
             disconnect();
             loginThread = new LoginThread(this);
             loginThread.start();
             currentState = state;
+            listener.onConnectionConnecting(this);
             break;
         case Connected:
             if (getConnection() == null || getConnection().isClosed()) {
                 throw new IllegalStateException("Can't set state 'Connected' without a connection");
             }
             currentState = state;
+            listener.onConnectionConnected(this);
             break;
         case Failed:
             disconnect();
             lastFailTime = System.currentTimeMillis();
             failCount++;
             currentState = state;
+            listener.onConnectionFailed(this);
             break;
         }
     }

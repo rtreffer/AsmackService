@@ -71,7 +71,10 @@ import com.googlecode.asmack.contacts.PresenceBroadcastReceiver;
  */
 public class XmppTransportService
     extends Service
-    implements OnAccountsUpdateListener, StanzaSink {
+    implements OnAccountsUpdateListener,
+               StanzaSink,
+               ConnectionStateChangeListener
+{
 
     /**
      * Reconnect timing.
@@ -94,7 +97,8 @@ public class XmppTransportService
     /**
      * The stanza receive intent/right.
      */
-    public static final String XMPP_STANZA_INTENT = "com.googlecode.asmack.intent.XMPP.STANZA";
+    public static final String XMPP_STANZA_INTENT =
+                                "com.googlecode.asmack.intent.XMPP.STANZA";
 
     /**
      * Logging tag for this class (class.getSimpleName()).
@@ -110,6 +114,12 @@ public class XmppTransportService
      * Executor for background presence and keepalive.
      */
     private static final Executor pingExecutor;
+
+    /**
+     * Intent name for xmpp connection state changes.
+     */
+    public static final String XMPP_STATE_INTENT =
+                                    "com.googlecode.asmack.intent.XMPP.STATE";
 
     /**
      * Pingcount for background ping ids.
@@ -237,7 +247,7 @@ public class XmppTransportService
             String username = account.name;
             AccountConnection state = connections.get(username);
             if (state == null) {
-                state = new AccountConnection(this);
+                state = new AccountConnection(this, this);
             }
             String password = accountManager.getPassword(account);
             XmppAccount xmppAccount = new XmppAccount();
@@ -413,6 +423,67 @@ public class XmppTransportService
             return;
         }
         state.transition(State.Failed);
+    }
+
+    /**
+     * Called whenever a connection state is reseted. Fires a broadcast intent.
+     * @param accountConnection The connection state that was reseted.
+     */
+    @Override
+    public void onConnectionStart(AccountConnection accountConnection) {
+        Intent intent = new Intent();
+        intent.setAction(XMPP_STATE_INTENT);
+        intent.putExtra("account", accountConnection.getAccount().getJid());
+        intent.putExtra("state", "start");
+        intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+    }
+
+    /**
+     * Called whenever a connection starts connecting. Fires a broadcast
+     * intent.
+     * @param accountConnection The connection state that switched to
+     *                          connecting.
+     */
+    @Override
+    public void onConnectionConnecting(AccountConnection accountConnection) {
+        Intent intent = new Intent();
+        intent.setAction(XMPP_STATE_INTENT);
+        intent.putExtra("account", accountConnection.getAccount().getJid());
+        intent.putExtra("state", "connecting");
+        intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+    }
+
+    /**
+     * Called whenever a connection is fully established, including feature
+     * negotiation. Fires a broadcast intent.
+     * @param accountConnection The connection status that switched to
+     *                          connected.
+     */
+    @Override
+    public void onConnectionConnected(AccountConnection accountConnection) {
+        Intent intent = new Intent();
+        intent.setAction(XMPP_STATE_INTENT);
+        intent.putExtra("account", accountConnection.getAccount().getJid());
+        intent.putExtra("state", "connected");
+        intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+    }
+
+    /**
+     * Called whenever a connection faile, either due to high latency or due
+     * to i/o errors. Fires a broadcast intent.
+     * @param accountConnection The connection status that switched to failed.
+     */
+    @Override
+    public void onConnectionFailed(AccountConnection accountConnection) {
+        Intent intent = new Intent();
+        intent.setAction(XMPP_STATE_INTENT);
+        intent.putExtra("account", accountConnection.getAccount().getJid());
+        intent.putExtra("state", "failed");
+        intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
     }
 
 }
