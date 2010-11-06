@@ -469,7 +469,7 @@ public class ContactDataMapper {
     private static String[] DATA_FIELDS = new String[]{
         Data.DATA1,  Data.DATA2,  Data.DATA3,  Data.DATA4,  Data.DATA5,
         Data.DATA6,  Data.DATA7,  Data.DATA8,  Data.DATA9,  Data.DATA10,
-        Data.DATA11, Data.DATA12, Data.DATA13, Data.DATA14, Data.DATA15
+        Data.DATA11, Data.DATA12, Data.DATA13, Data.DATA14
     };
 
     /**
@@ -491,6 +491,7 @@ public class ContactDataMapper {
         for (int i = 0; i < DATA_FIELDS.length; i++) {
             values.put(DATA_FIELDS[i], metadata.getData(i));
         }
+        values.put(Data.DATA15, metadata.getBlob());
     }
 
     /**
@@ -619,6 +620,9 @@ public class ContactDataMapper {
             index = cursor.getColumnIndex(DATA_FIELDS[i]);
             metadata.setData(i, cursor.getString(index));
         }
+        index = cursor.getColumnIndex(Data.DATA15);
+        metadata.setBlob(cursor.getBlob(index));
+
         return metadata;
     }
 

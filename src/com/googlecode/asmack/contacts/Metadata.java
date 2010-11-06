@@ -63,12 +63,13 @@ public class Metadata {
     protected String mimetype;
 
     /**
-     * <p>The 15 generic data fields. It is up to the subclasses to provide
-     * meaningfull get/set wrapper.</p>
+     * <p>The 14 generic data fields. It is up to the subclasses to provide
+     * meaningfull get/set wrapper. DATA15 is stored as a blob, and may thus
+     * be received via getBlob().</p>
      * <p>Please note that this array has a 0
      * offset instead of the 1 offset of the data table.</p>
      */
-    protected final String data[] = new String[15];
+    protected final String data[] = new String[14];
 
     /**
      * <p>The 4 generic sync fields.</p>
@@ -76,6 +77,11 @@ public class Metadata {
      * columns use a 1 offset.</p>
      */
     protected final String sync[] = new String[4];
+
+    /**
+     * <p>The DATA15 blob as a byte array.</p>
+     */
+    protected byte[] blob = null;
 
     /**
      * Retrieve the metadata id.
@@ -171,6 +177,22 @@ public class Metadata {
      */
     public void setSync(int index, String value) {
         sync[index] = value;
+    }
+
+    /**
+     * Retrieve the current blob field data (DATA15).
+     * @return The current blob content.
+     */
+    public byte[] getBlob() {
+        return blob;
+    }
+
+    /**
+     * Set the new blob (DATA15) content for this metadata.
+     * @param blob The new blob.
+     */
+    public void setBlob(byte[] blob) {
+        this.blob = blob;
     }
 
 }

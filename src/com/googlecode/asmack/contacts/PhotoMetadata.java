@@ -61,7 +61,7 @@ public class PhotoMetadata extends Metadata {
      * @param data The new image data content.
      */
     public void setPhoto(byte data[]) {
-        setData(14, new String(data));
+        setBlob(data);
     }
 
     /**
@@ -69,7 +69,7 @@ public class PhotoMetadata extends Metadata {
      * @return The photo bytes.
      */
     public byte[] getPhoto() {
-        return getData(14).getBytes();
+        return getBlob();
     }
 
     /**
