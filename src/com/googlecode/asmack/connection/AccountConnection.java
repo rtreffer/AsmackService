@@ -46,6 +46,22 @@ import com.googlecode.asmack.XmppException;
 
 /**
  * A statemachine like link between an account and a connection.
+ * <pre>
+ *                 ---------
+ *      --------> |  Start  |
+ *     |           ---------
+ *     |               |
+ *     |              \|/
+ *     |         ------------
+ *     |  ----> |            |
+ *     | |   ---| Connecting |---
+ *     | |  |   |            |   |
+ *     | |  |    ------------    |
+ *     | | \|/                  \|/
+ *   ----------             -----------
+ *  |  Failed  | <-------- | Connected |
+ *   ----------             -----------
+ * </pre>
  */
 public class AccountConnection {
 
