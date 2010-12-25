@@ -14,6 +14,12 @@ AsmackService is a xmpp service for Android
 Accounts are integrated into the android account system. "Add Account" should
 be used to add new XMPP accounts.
 
+== Entity Capabilities ==
+
+Basic entity capabilities are supported via service discovery and presence
+sending. New capabilities can be registered on the fly and will be activated
+within minutes (next action tick plus discovery time).
+
 == Rosters ==
 
 Rosters are fetched during the system wide contact sync.
