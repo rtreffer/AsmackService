@@ -4,4 +4,3 @@
 - Add more system wide events (connection established, closed, ...)
 - Add VCARD support for better contact entries
 - Move metadata initialization into a factory
-- Create a port of the smack parsing library for normal xmpp apps
