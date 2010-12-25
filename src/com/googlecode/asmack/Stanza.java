@@ -149,13 +149,13 @@ public class Stanza implements Parcelable {
     }
 
     /**
-     * Retrieve the attribute matching the givrn name and namespace.
+     * Retrieve the attribute matching the given name and namespace.
      * @param name The name of the attribute in question.
      * @param namespace The namespace of the attribute in question.
      * @return An attribute with the give name and namespace or null.
      */
     public Attribute getAttribute(final String name, final String namespace) {
-        if (namespace == null) {
+        if (namespace == null || namespace.length() == 0) {
             for (Attribute attr: attributes) {
                 if (attr.getName().equals(name)) {
                     return attr;
@@ -169,6 +169,33 @@ public class Stanza implements Parcelable {
             }
             if (namespace.equals(attr.getNamespace())) {
                 return attr;
+            }
+        }
+        return null;
+    }
+
+    public String getAttributeValue(final String name) {
+        return getAttributeValue(name, "");
+    }
+
+    public String getAttributeValue(
+        final String name,
+        final String namespace
+    ) {
+        if (namespace == null || namespace.length() == 0) {
+            for (Attribute attr: attributes) {
+                if (attr.getName().equals(name)) {
+                    return attr.getValue();
+                }
+            }
+            return null;
+        }
+        for (Attribute attr: attributes) {
+            if (!attr.getName().equals(name)) {
+                continue;
+            }
+            if (namespace.equals(attr.getNamespace())) {
+                return attr.getValue();
             }
         }
         return null;

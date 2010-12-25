@@ -50,13 +50,15 @@ public class PresenceRunnable implements Runnable {
      * The connection for the presence update.
      */
     private final Connection connection;
+    private final String verification;
 
     /**
      * Create a new presence runnable for a given connection.
      * @param connection The output connection for the presence update.
      */
-    public PresenceRunnable(Connection connection) {
+    public PresenceRunnable(Connection connection, String verification) {
         this.connection = connection;
+        this.verification = verification;
     }
 
     /**
@@ -64,11 +66,19 @@ public class PresenceRunnable implements Runnable {
      */
     @Override
     public void run() {
+        String payload = "<presence />";
+        if (verification != null) {
+            payload = "<presence><c xmlns='http://jabber.org/protocol/caps' " +
+                      "hash='sha-1' " +
+                      "node='http://github.com/rtreffer/AsmackService' " +
+                      "ver='" + verification +"'" +
+                      "/></presence>";
+        }
         Stanza stanza = new Stanza(
                 "presence",
                 "",
                 "",
-                "<presence />",
+                payload,
                 null
         );
         try {

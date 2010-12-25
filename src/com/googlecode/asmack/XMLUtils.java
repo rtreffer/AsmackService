@@ -206,7 +206,7 @@ public class XMLUtils {
      * 
      * Errata: Some common XMPP servers (read: ejabberd) don't handle stanzas
      *         like <n0:iq to="romeo@example.com" xmlns:n0="jabber:client">
-     *         this means we'll have to rename "n0" to "", whis isn't the
+     *         this means we'll have to rename "n0" to "", which isn't the
      *         default behaviour.
      *
      * @param xmlPullParser The pull parser for xml reading.
@@ -380,6 +380,29 @@ public class XMLUtils {
         throws XmlPullParserException
     {
         return xmlPullParserFactory.newSerializer();
+    }
+
+    /**
+     * Escape a string for use in XML. This method replaces &amp;, &lt;, &gt;,
+     * &apos; as well as  &quot;.
+     * @param source The unescaped string.
+     * @return An escaped string.
+     */
+    public static String xmlEscape(String source) {
+        StringBuilder sb = new StringBuilder(
+                source.length() + (source.length() / 10));
+        for (int i = 0; i < source.length(); i++) {
+            char c = source.charAt(i);
+            switch ("<>&'\"".indexOf(c)) {
+                case 0: sb.append("&lt;"); break;
+                case 1: sb.append("&gt;"); break;
+                case 2: sb.append("&amp;"); break;
+                case 3: sb.append("&apos;"); break;
+                case 4: sb.append("&quot;"); break;
+                default: sb.append(c); break;
+            }
+        }
+        return sb.toString();
     }
 
 }

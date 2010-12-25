@@ -35,75 +35,45 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-package com.googlecode.asmack.contacts;
+package com.googlecode.asmack.connection;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+
+import com.googlecode.asmack.Stanza;
 
 /**
- * XmppMetadata represents the metadata as displayed in the contact overview.
+ * Receiver for send stanza intents. Send Stanza intents are a fire and foget
+ * solution for cheap replies.
  */
-public class XmppMetadata extends Metadata {
+public class SendStanzaReceiver extends BroadcastReceiver {
 
     /**
-     * The xmpp profile mimetype, as specified in the android manifest.
+     * The underlying service that will send the stanza.
      */
-    public final static String MIMETYPE =
-        "vnd.android.cursor.item/vnd.xmpp.profile";
+    private final XmppTransportService service;
 
     /**
-     * Create a new XmppMetadate object with default values.
+     * Create a new stanza send receiver that will report stanzas to be send
+     * @param service The underlying xmpp transport service.
      */
-    public XmppMetadata() {
-        mimetype = MIMETYPE;
-        setSummary("Xmpp-Profil");
-        setDetail("Show Profile");
+    public SendStanzaReceiver(XmppTransportService service) {
+        this.service = service;
     }
 
     /**
-     * Set the jid of the target contact.
-     * @param jid The target contact jid.
+     * Called on new intents.
+     * @param context The current context, ignored.
+     * @param intent The new intent.
      */
-    public void setJid(String jid) {
-        setDetail("Show " + jid);
-        setData(0, jid);
-    }
-
-    /**
-     * Retrieve the target user jid.
-     * @return The target user jid.
-     */
-    public String getJid() {
-        return getData(0);
-    }
-
-    /**
-     * Set the contact summary.
-     * @param summary The contact summary.
-     */
-    public void setSummary(String summary) {
-        setData(1, summary);
-    }
-
-    /**
-     * Retrieve the contact summary.
-     * @return The contact summary.
-     */
-    public String getSummary() {
-        return getData(1);
-    }
-
-    /**
-     * Set the contacts details.
-     * @param detail The contacts details.
-     */
-    public void setDetail(String detail) {
-        setData(2, detail);
-    }
-
-    /**
-     * Retrieve the contacts details.
-     * @return The contacts details.
-     */
-    public String getDetail() {
-        return getData(2);
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (!intent.hasExtra("stanza")) {
+            return;
+        }
+        Stanza stanza = intent.getParcelableExtra("stanza");
+        service.send(stanza);
     }
 
 }

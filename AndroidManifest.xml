@@ -53,8 +53,11 @@
 
     </application>
 
-    <permission android:name="com.googlecode.asmack.android.RECEIVE_STANZAS"
-                android:label="XMPP Datastream" />
+    <permission android:name="com.googlecode.asmack.intent.XMPP.STANZA.RECEIVE"
+                android:label="XMPP Datastream Incoming" />
+
+    <permission android:name="com.googlecode.asmack.intent.XMPP.STANZA.SEND"
+                android:label="XMPP Datastream Outgoing" />
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
@@ -70,6 +73,7 @@
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <uses-permission android:name="com.googlecode.asmack.android.RECEIVE_STANZAS" />
+    <uses-permission android:name="com.googlecode.asmack.intent.XMPP.STANZA.RECEIVE" />
+    <uses-permission android:name="com.googlecode.asmack.intent.XMPP.STANZA.SEND" />
 
 </manifest> 

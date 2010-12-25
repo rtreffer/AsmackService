@@ -61,9 +61,13 @@ import com.googlecode.asmack.StanzaSink;
 import com.googlecode.asmack.XMPPUtils;
 import com.googlecode.asmack.XmppAccount;
 import com.googlecode.asmack.XmppException;
+import com.googlecode.asmack.XmppIdentity;
 import com.googlecode.asmack.connection.AccountConnection.State;
 import com.googlecode.asmack.contacts.ContactDataMapper;
 import com.googlecode.asmack.contacts.PresenceBroadcastReceiver;
+import com.googlecode.asmack.disco.Database;
+import com.googlecode.asmack.disco.DiscoReceiver;
+import com.googlecode.asmack.util.LRUCache;
 
 /**
  * The core xmpp service, responsible for connection tracking, keepalive and
@@ -95,10 +99,22 @@ public class XmppTransportService
     };
 
     /**
+     * Cache of verification strings for presence.
+     */
+    private static final LRUCache<String, String> JID_VERIFICATION_CACHE =
+                     new LRUCache<String, String>(100);
+
+    /**
      * The stanza receive intent/right.
      */
     public static final String XMPP_STANZA_INTENT =
-                                "com.googlecode.asmack.intent.XMPP.STANZA";
+                             "com.googlecode.asmack.intent.XMPP.STANZA.RECEIVE";
+
+    /**
+     * The stanza send intent/right.
+     */
+    public static final String XMPP_STANZA_SEND_INTENT =
+                            "com.googlecode.asmack.intent.XMPP.STANZA.SEND";
 
     /**
      * Logging tag for this class (class.getSimpleName()).
@@ -195,6 +211,73 @@ public class XmppTransportService
                 return XmppTransportService.this.getFullJidByBare(bare);
             }
 
+            /**
+             * Enable a new feature for a given jid. A new presence will be
+             * send with the next tick (max. 60s).
+             * @param jid The jid to enhance
+             * @param feature The new feature.
+             */
+            @Override
+            public void enableFeatureForJid(String jid, String feature)
+                    throws RemoteException {
+                Database.enableFeature(
+                    getApplicationContext(),
+                    jid,
+                    feature,
+                    null
+                );
+                JID_VERIFICATION_CACHE.remove(jid);
+            }
+
+            /**
+             * Enable a feature for all xmpp connections. New features will
+             * be announced with the next time tick.
+             * @param feature The feature to be announced.
+             */
+            @Override
+            public void enableFeature(String feature) throws RemoteException {
+                Database.enableFeature(
+                    getApplicationContext(),
+                    feature,
+                    null
+                );
+                JID_VERIFICATION_CACHE.clear();
+            }
+
+            /**
+             * Add an identity to a given xmpp connection. The identity will
+             * be announced with the next time tick.
+             * @param jid The user jid.
+             * @param identity The new xmpp identity.
+             */
+            @Override
+            public void addIdentityForJid(String jid, XmppIdentity identity)
+                    throws RemoteException {
+                Database.addIdentity(
+                    getApplicationContext(),
+                    jid,
+                    identity,
+                    null
+                );
+                JID_VERIFICATION_CACHE.remove(jid);
+            }
+
+            /**
+             * Add a new identity to all xmpp accounts. The identity will be
+             * announced during the next time tick.
+             * @param identity The new identity.
+             */
+            @Override
+            public void addIdentity(XmppIdentity identity)
+                    throws RemoteException {
+                Database.addIdentity(
+                    getApplicationContext(),
+                    identity,
+                    null
+                );
+                JID_VERIFICATION_CACHE.clear();
+            }
+
         };
 
     /**
@@ -223,11 +306,18 @@ public class XmppTransportService
         ContentProviderClient provider = getContentResolver()
                 .acquireContentProviderClient(ContactsContract.AUTHORITY_URI);
         ContactDataMapper mapper = new ContactDataMapper(provider);
+
         BroadcastReceiver receiver = new PresenceBroadcastReceiver(mapper);
+        registerReceiver(receiver, new IntentFilter(XmppTransportService.XMPP_STANZA_INTENT));
+
+        receiver = new DiscoReceiver();
         registerReceiver(receiver, new IntentFilter(XmppTransportService.XMPP_STANZA_INTENT));
 
         receiver = new KeepaliveActionIntentReceiver(this);;
         registerReceiver(receiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+
+        receiver = new SendStanzaReceiver(this);
+        registerReceiver(receiver, new IntentFilter(XMPP_STANZA_SEND_INTENT));
 
         accountManager.addOnAccountsUpdatedListener(this, null, true);
     }
@@ -345,7 +435,7 @@ public class XmppTransportService
         intent.setAction(XMPP_STANZA_INTENT);
         intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
         intent.putExtra("stanza", stanza);
-        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+        sendBroadcast(intent, XMPP_STANZA_INTENT);
     }
 
     /**
@@ -391,8 +481,21 @@ public class XmppTransportService
             if (state.getCurrentState() != State.Connected) {
                 continue;
             }
+            String jid = connection.getAccount().getJid();
+            String verificationHash = JID_VERIFICATION_CACHE.get(jid);
+            if (verificationHash == null) {
+                verificationHash = Database.computeVerificationHash(
+                    getApplicationContext(),
+                    jid,
+                    null
+                );
+                JID_VERIFICATION_CACHE.put(jid, verificationHash);
+                pingExecutor.execute(new PresenceRunnable(connection,
+                                     verificationHash));
+            } else
             if (pingCount % 60 == 0) {
-                pingExecutor.execute(new PresenceRunnable(connection));
+                pingExecutor.execute(new PresenceRunnable(connection,
+                                     verificationHash));
             }
             if (now - connection.lastReceive() > 180000) {
                 Log.d(TAG, "Fail on " + connection.getResourceJid());
@@ -436,7 +539,7 @@ public class XmppTransportService
         intent.putExtra("account", accountConnection.getAccount().getJid());
         intent.putExtra("state", "start");
         intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+        sendBroadcast(intent, XMPP_STANZA_INTENT);
     }
 
     /**
@@ -452,7 +555,7 @@ public class XmppTransportService
         intent.putExtra("account", accountConnection.getAccount().getJid());
         intent.putExtra("state", "connecting");
         intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+        sendBroadcast(intent, XMPP_STANZA_INTENT);
     }
 
     /**
@@ -468,7 +571,8 @@ public class XmppTransportService
         intent.putExtra("account", accountConnection.getAccount().getJid());
         intent.putExtra("state", "connected");
         intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+        sendBroadcast(intent, XMPP_STANZA_INTENT);
+        JID_VERIFICATION_CACHE.remove(accountConnection.getAccount().getJid());
     }
 
     /**
@@ -483,7 +587,7 @@ public class XmppTransportService
         intent.putExtra("account", accountConnection.getAccount().getJid());
         intent.putExtra("state", "failed");
         intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-        sendBroadcast(intent, "com.googlecode.asmack.android.RECEIVE_STANZAS");
+        sendBroadcast(intent, XMPP_STANZA_INTENT);
     }
 
 }
