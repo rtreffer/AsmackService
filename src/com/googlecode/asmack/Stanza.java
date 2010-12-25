@@ -174,10 +174,22 @@ public class Stanza implements Parcelable {
         return null;
     }
 
+    /**
+     * Retrieve the value of a given attribute, or null if not available.
+     * @param name The attribute name.
+     * @return The value of the attribute, or null.
+     */
     public String getAttributeValue(final String name) {
         return getAttributeValue(name, "");
     }
 
+    /**
+     * Retrieve the value of a single attribute, or null if the attribute
+     * can't be found.
+     * @param name The name of the attribute.
+     * @param namespace The namespace of the attribute (or null).
+     * @return The value of the attribute, or null.
+     */
     public String getAttributeValue(
         final String name,
         final String namespace
