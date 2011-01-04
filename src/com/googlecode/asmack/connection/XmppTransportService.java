@@ -149,7 +149,7 @@ public class XmppTransportService
     }
 
     /**
-     * Map of {{bare jid} => {/AccountConnection}} pairs.
+     * Map of {{bare jid} => {AccountConnection}} pairs.
      */
     private HashMap<String, AccountConnection> connections = new HashMap<String, AccountConnection>();
 
@@ -474,6 +474,14 @@ public class XmppTransportService
                 ];
                 if (now - connection.lastReceive() > reconnectTime) {
                     Log.d(TAG, "Reconnect on " + connection.getResourceJid());
+                    if (state.getFailCount() > 0) {
+                        // try to change the resource
+                        state.getAccount().setResource(
+                            "asmack" +
+                            Integer.toHexString((int)(255.999 * Math.random()))
+                                   .toLowerCase()
+                        );
+                    }
                     state.transition(State.Connecting);
                 }
                 continue;
@@ -518,7 +526,8 @@ public class XmppTransportService
     public synchronized void connectionFailed(
             Connection connection,
             XmppException exception) {
-        AccountConnection state = connections.get(connection.getAccount().getJid());
+        AccountConnection state = 
+            connections.get(connection.getAccount().getJid());
         if (state == null) {
             return;
         }

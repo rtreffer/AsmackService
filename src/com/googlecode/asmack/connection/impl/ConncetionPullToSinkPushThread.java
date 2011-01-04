@@ -109,6 +109,11 @@ public class ConncetionPullToSinkPushThread extends Thread {
                 sink.receive(stanza);
             }
         } catch (XmppException e) {
+            try {
+                connection.close();
+            } catch (Exception ex) {
+                // we just try to clean up, ignore problems
+            }
             Log.e(TAG, "Connection aborted", e);
             sink.connectionFailed(connection, e);
         }

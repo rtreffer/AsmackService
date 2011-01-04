@@ -205,19 +205,23 @@ public class TcpConnection implements Connection {
             socket.setSoTimeout(3*60*1000);
             socket.setTcpNoDelay(true);
         } catch (IOException e) {
+            close();
             throw new XmppTransportException("Can't connect", e);
         }
         FeatureNegotiationEngine engine;
         try {
             engine = new FeatureNegotiationEngine(socket);
         } catch (XmlPullParserException e) {
+            close();
             throw new XmppMalformedException("Can't connect", e);
         } catch (IOException e) {
+            close();
             throw new XmppTransportException("Can't connect", e);
         }
         engine.open(account);
         resourceJid = engine.bind(account.getResource());
         if (resourceJid == null) {
+            close();
             throw new XmppTransportException("Can't bind");
         }
         Log.d(TAG, "Bound as " + resourceJid);

@@ -133,6 +133,11 @@ public class AccountConnection {
     private long lastFailTime;
 
     /**
+     * The last time this connection established.
+     */
+    private long lastConnectedTime;
+
+    /**
      * The target stanza sink.
      */
     private final StanzaSink stanzaSink;
@@ -223,13 +228,19 @@ public class AccountConnection {
             if (getConnection() == null || getConnection().isClosed()) {
                 throw new IllegalStateException("Can't set state 'Connected' without a connection");
             }
+            failCount = 0;
             currentState = state;
+            lastConnectedTime = System.currentTimeMillis();
             listener.onConnectionConnected(this);
             break;
         case Failed:
             disconnect();
             lastFailTime = System.currentTimeMillis();
-            failCount++;
+            if (state != State.Connected ||
+                lastFailTime - lastConnectedTime < 60 * 1000) {
+                // regard quick flips as failes
+                failCount++;
+            }
             currentState = state;
             listener.onConnectionFailed(this);
             break;
@@ -282,8 +293,8 @@ public class AccountConnection {
     ) {
         Connection oldConnection = null;
         if (currentState == State.Connected) {
-            // we will likely kill this connection anyway
-            oldConnection = this.connection;;
+            Log.w(TAG, "TWO CONNECTIONS RUNNING");
+            oldConnection = this.connection;
         }
 
         // Try to send an initial stanza
@@ -325,8 +336,6 @@ public class AccountConnection {
 
         this.connection = connection;
         transition(State.Connected);
-
-        failCount = 0;
     }
 
     /**
