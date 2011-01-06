@@ -202,6 +202,30 @@ public class XmppTransportService
             }
 
             /**
+             * Send a single stanza through all connections, altering from
+             * to be the resource address.
+             * @param stanza The stanza to send.
+             */
+            @Override
+            public void sendFromAllResources(Stanza stanza)
+                throws RemoteException
+            {
+                XmppTransportService.this.sendFromAllResources(stanza);
+            }
+
+            /**
+             * Send a single stanza through all connections, altering from
+             * to be the account address.
+             * @param stanza The stanza to send.
+             */
+            @Override
+            public void sendFromAllAccounts(Stanza stanza)
+                throws RemoteException
+            {
+                XmppTransportService.this.sendFromAllAccounts(stanza);
+            }
+
+            /**
              * Retrieve the full resource jid by bare jid.
              * @param bare The bare user jid.
              * @return The full resource jid.
@@ -388,6 +412,49 @@ public class XmppTransportService
         }
         Log.e(TAG, "No stream for " + via);
         return false;
+    }
+
+    /**
+     * Send a stanza via this service, through all account jids.
+     * @param stanza The stanza to send.
+     */
+    public void sendFromAllAccounts(Stanza stanza) {
+        Log.d(TAG, "Sending stanza " + stanza.getName() + " via *");
+        for (AccountConnection state: connections.values()) {
+            if (state.getCurrentState() != State.Connected) {
+                continue;
+            }
+            stanza.addAttribute(
+                new Attribute("from", "", state.getAccount().getJid())
+            );
+            try {
+                state.getConnection().send(stanza);
+            } catch (XmppException e) {
+                Log.w(TAG, "Problem sending staza " + stanza.getName(), e);
+            }
+        }
+    }
+
+    /**
+     * Send a stanza via this service, through all resource jids.
+     * @param stanza The stanza to send.
+     */
+    public void sendFromAllResources(Stanza stanza) {
+        Log.d(TAG, "Sending stanza " + stanza.getName() + " via *");
+        for (AccountConnection state: connections.values()) {
+            if (state.getCurrentState() != State.Connected) {
+                continue;
+            }
+            Connection connection = state.getConnection();
+            stanza.addAttribute(
+                new Attribute("from", "", connection.getResourceJid())
+            );
+            try {
+                state.getConnection().send(stanza);
+            } catch (XmppException e) {
+                Log.w(TAG, "Problem sending staza " + stanza.getName(), e);
+            }
+        }
     }
 
     /**

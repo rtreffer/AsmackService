@@ -61,6 +61,18 @@ interface IXmppTransportService {
     boolean send(in Stanza stanza);
 
     /**
+     * Send a stanza via this service, through all resource jids.
+     * @param stanza The stanza to send.
+     */
+    void sendFromAllResources(in Stanza stanza);
+
+    /**
+     * Send a stanza via this service, through all account jids.
+     * @param stanza The stanza to send.
+     */
+    void sendFromAllAccounts(in Stanza stanza);
+
+    /**
      * Scan all connections for the current connection of the given jid and
      * return the full resource jid for the user.
      * @return The full user jid (including resource).
