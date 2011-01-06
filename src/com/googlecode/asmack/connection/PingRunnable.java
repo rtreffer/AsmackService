@@ -67,7 +67,7 @@ public class PingRunnable implements Runnable {
                 "iq",
                 "",
                 "",
-                "<iq from='" +
+                "<iq type='get' from='" +
                 connection.getResourceJid() +
                 "' id='ping_" +
                 Long.toHexString((int)(Integer.MAX_VALUE * Math.random()))
