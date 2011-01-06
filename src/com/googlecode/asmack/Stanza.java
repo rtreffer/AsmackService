@@ -123,11 +123,23 @@ public class Stanza implements Parcelable {
     }
 
     /**
-     * Add a specific attribute. Adding mutliple attributes of the same name
-     * and namespace may have unpredicted results.
+     * Add a specific attribute.
      * @param attr The attribute to add.
      */
     public void addAttribute(Attribute attr) {
+        for (int i = 0; i < attributes.size(); i++) {
+            Attribute other = attributes.get(i);
+            if ((other.getName() == null && attr.getName() == null) ||
+                (!other.getName().equals(attr.getName()))) {
+                continue;
+            }
+            if ((other.getNamespace() == null && attr.getNamespace() == null)
+                || (!other.getNamespace().equals(attr.getNamespace()))) {
+                continue;
+            }
+            attributes.set(i, attr);
+            return;
+        }
         attributes.add(attr);
     }
 
