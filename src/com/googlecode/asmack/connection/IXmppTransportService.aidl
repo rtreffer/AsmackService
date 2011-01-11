@@ -109,4 +109,20 @@ interface IXmppTransportService {
      */
     void addIdentity(in XmppIdentity identity);
 
+    /**
+     * Retrieve all current account jids.
+     * @param connected True if you only jids of connected acocunts should be
+     *                  returned.
+     * @return List of account jids.
+     */
+    String[] getAllAccountJids(boolean connected);
+
+    /**
+     * Retrieve all resource jids (where available).
+     * @param connected True if you only jids of connected acocunts should be
+     *                  returned.
+     * @return List of account jids.
+     */
+    String[] getAllResourceJids(boolean connected);
+
 }

@@ -37,6 +37,7 @@
 
 package com.googlecode.asmack.connection;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -300,6 +301,51 @@ public class XmppTransportService
                     null
                 );
                 JID_VERIFICATION_CACHE.clear();
+            }
+
+            /**
+             * Retrieve all current account jids.
+             * @param connected True if you only jids of connected acocunts should be
+             *                  returned.
+             * @return List of account jids.
+             */
+            @Override
+            public String[] getAllAccountJids(
+                boolean connected
+            ) throws RemoteException {
+                ArrayList<String> jids = new ArrayList<String>();
+                for (AccountConnection state: connections.values()) {
+                    if (connected && state.getCurrentState() !=
+                        AccountConnection.State.Connected) {
+                        continue;
+                    }
+                    jids.add(state.getAccount().getJid());
+                }
+                return jids.toArray(new String[jids.size()]);
+            }
+
+            /**
+             * Retrieve all resource jids (where available).
+             * @param connected True if you only jids of connected acocunts should be
+             *                  returned.
+             * @return List of account jids.
+             */
+            @Override
+            public String[] getAllResourceJids(
+                boolean connected
+            ) throws RemoteException {
+                ArrayList<String> resources = new ArrayList<String>();
+                for (AccountConnection state: connections.values()) {
+                    if (state.getCurrentState() !=
+                        AccountConnection.State.Connected) {
+                        continue;
+                    }
+                    String jid = state.getConnection().getResourceJid();
+                    if (jid != null) {
+                        resources.add(jid);
+                    }
+                }
+                return resources.toArray(new String[resources.size()]);
             }
 
         };
