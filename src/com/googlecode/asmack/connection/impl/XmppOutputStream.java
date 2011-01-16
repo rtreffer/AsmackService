@@ -41,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.util.HashSet;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -224,22 +225,34 @@ public class XmppOutputStream {
         try {
             xmlSerializer.startTag(stanza.getNamespace(), stanza.getName());
 
+            HashSet<String> addedAttributes = new HashSet<String>();
+
+            if (stanza.getAttributes() != null) {
+                for (Attribute attr: stanza.getAttributes()) {
+                    addedAttributes.add(
+                        attr.getNamespace() + "\0" + attr.getName()
+                    );
+                    xmlSerializer.attribute(
+                        attr.getNamespace(),
+                        attr.getName(),
+                        attr.getValue()
+                    );
+                }
+            }
+
             xmlPullParser.nextTag();
             int attributeCount = xmlPullParser.getAttributeCount();
             for (int i = 0; i < attributeCount; i++) {
+                String key = xmlPullParser.getAttributeNamespace(i) + "\0" +
+                             xmlPullParser.getAttributeName(i);
+                if (addedAttributes.contains(key)) {
+                    continue;
+                }
                 xmlSerializer.attribute(
                     xmlPullParser.getAttributeNamespace(i),
                     xmlPullParser.getAttributeName(i),
                     xmlPullParser.getAttributeValue(i)
                 );
-            }
-
-            if (stanza.getAttributes() != null) {
-                for (Attribute attr: stanza.getAttributes()) {
-                    xmlSerializer.attribute(
-                        attr.getNamespace(), attr.getName(), attr.getValue()
-                    );
-                }
             }
 
             if (xmlPullParser.isEmptyElementTag()) {
