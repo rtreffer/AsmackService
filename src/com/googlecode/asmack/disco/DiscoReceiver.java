@@ -57,10 +57,11 @@ public class DiscoReceiver extends BroadcastReceiver {
             }
             Node discoAttributeNode =
                         query.getAttributes().getNamedItem("node");
-            if (discoAttributeNode == null) {
-                return;
+            String discoNode = null;
+            if (discoAttributeNode != null) {
+                discoNode = discoAttributeNode.getTextContent();
             }
-            String discoNode = discoAttributeNode.getTextContent();
+
             // we got a disco, reply
             StringBuilder payload = new StringBuilder("<iq type='result'");
             payload.append(" from='");
@@ -70,8 +71,10 @@ public class DiscoReceiver extends BroadcastReceiver {
             payload.append("'>");
             payload.append("<query xmlns='");
             payload.append("http://jabber.org/protocol/disco#info");
-            payload.append("' node='");
-            payload.append(XMLUtils.xmlEscape(discoNode));
+            if (discoNode != null) {
+                payload.append("' node='");
+                payload.append(XMLUtils.xmlEscape(discoNode));
+            }
             payload.append("'>");
 
             String myJid = XMPPUtils.getBareJid(to.getValue());
