@@ -104,7 +104,7 @@ public class DiscoReceiver extends BroadcastReceiver {
                 payload.append("/>");
             }
             for (String feature : Database.getFeatures(context, myJid, null)) {
-                payload.append("<feature ver='");
+                payload.append("<feature var='");
                 payload.append(XMLUtils.xmlEscape(feature));
                 payload.append("'/>");
             }
