@@ -281,7 +281,7 @@ public class Database {
             values.put("jid", jid);
         }
         values.put("ver", feature);
-        database.insert("features", "_id", values);
+        database.insert("feature", "_id", values);
     }
 
     /**
