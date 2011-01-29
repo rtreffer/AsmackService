@@ -233,15 +233,28 @@ public class Database {
         CursorFactory factory
     ) {
         SQLiteDatabase database = getDatabase(context, factory);
-        Cursor result = database.query(
-            "feature",
-            new String[]{"_id"},
-            "(jid=? OR (jid IS NULL)) AND ver=?",
-            new String[]{jid, feature},
-            null, null, null
-        );
-        boolean featureAvailable = result.getCount() > 0;
-        result.close();
+        boolean featureAvailable = false;
+        if (jid == null) {
+            Cursor result = database.query(
+                "feature",
+                new String[]{"_id"},
+                "(jid IS NULL) AND ver=?",
+                new String[]{feature},
+                null, null, null
+            );
+            featureAvailable = result.getCount() > 0;
+            result.close();
+        } else {
+            Cursor result = database.query(
+                "feature",
+                new String[]{"_id"},
+                "(jid=? OR (jid IS NULL)) AND ver=?",
+                new String[]{jid, feature},
+                null, null, null
+            );
+            featureAvailable = result.getCount() > 0;
+            result.close();
+        }
         return featureAvailable;
     }
 
