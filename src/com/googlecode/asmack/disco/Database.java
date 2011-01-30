@@ -114,8 +114,7 @@ public class Database {
             MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
             byte digest[] = sha1.digest(sb.toString().getBytes());
             String base64 =
-                Base64.encodeToString(digest,
-                        Base64.NO_WRAP | Base64.NO_PADDING);
+                Base64.encodeToString(digest, Base64.NO_WRAP);
             return base64.trim();
         } catch (NoSuchAlgorithmException e) {
             // This should never happen.
