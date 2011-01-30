@@ -602,6 +602,11 @@ public class XmppTransportService
             if (state.getCurrentState() != State.Connected) {
                 continue;
             }
+            if (now - connection.lastReceive() > 180000) {
+                Log.d(TAG, "Fail on " + connection.getResourceJid());
+                state.transition(State.Failed);
+                continue;
+            }
             String jid = connection.getAccount().getJid();
             String verificationHash = JID_VERIFICATION_CACHE.get(jid);
             if (verificationHash == null) {
@@ -613,15 +618,9 @@ public class XmppTransportService
                 JID_VERIFICATION_CACHE.put(jid, verificationHash);
                 pingExecutor.execute(new PresenceRunnable(connection,
                                      verificationHash));
-            } else
-            if (pingCount % 60 == 0) {
+            } else {
                 pingExecutor.execute(new PresenceRunnable(connection,
                                      verificationHash));
-            }
-            if (now - connection.lastReceive() > 180000) {
-                Log.d(TAG, "Fail on " + connection.getResourceJid());
-                state.transition(State.Failed);
-                continue;
             }
             if (now - connection.lastReceive() > 60000) {
                 Log.d(TAG, "Keepalive on " + connection.getResourceJid());
