@@ -109,6 +109,7 @@ public class Database {
             sb.append(feature);
             sb.append('<');
         }
+        Log.d("XMPP/DISCO", "Feature string for " + jid + ": " + sb.toString());
         try {
             MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
             byte digest[] = sha1.digest(sb.toString().getBytes());
