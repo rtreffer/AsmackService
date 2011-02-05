@@ -41,14 +41,14 @@
     </target>
 
 
-    <target name="library" depends="compile,-post-compile,-package-resources"
+    <target name="library" depends="-dirs,compile,-post-compile,-package-resources"
                 description="Builds the application and signs it with a debug key.">
         <jar destfile="${out.absolute.dir}/${ant.project.name}-plain.jar" basedir="${out.classes.absolute.dir}" />
         <zip destfile="${out.absolute.dir}/${ant.project.name}.jar" duplicate="preserve">
             <fileset dir="${out.classes.absolute.dir}">
                 <include name="**/*" />
             </fileset>
-            <zipgroupfileset dir="${external.libs.absolute.dir}" includes="*.jar"/>
+            <zipgroupfileset dir="libs" includes="*.jar"/>
         </zip>
     </target>
 
