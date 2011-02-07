@@ -55,14 +55,16 @@
                 android:scrollHorizontally="true"
                 android:capitalize="none"
                 android:autoText="false"
-                android:inputType="textEmailAddress" />
+                android:inputType="textEmailAddress"
+                android:contentDescription="@string/authenticator_activity_username_label" />
             <TextView
                 android:id="@+id/username_fixed"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:singleLine="true"
                 android:layout_marginTop="2dip"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:focusable="true" />
             <TextView
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textStyle="bold"
@@ -81,7 +83,8 @@
                 android:capitalize="none"
                 android:autoText="false"
                 android:password="true"
-                android:inputType="textPassword" />
+                android:inputType="textPassword"
+                android:contentDescription="@string/authenticator_activity_password_label" />
             <TextView
                 android:id="@+id/message_bottom"
                 android:textAppearance="?android:attr/textAppearanceSmall"
