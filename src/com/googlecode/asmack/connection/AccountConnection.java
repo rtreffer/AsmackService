@@ -187,6 +187,11 @@ public class AccountConnection {
         return failCount;
     }
 
+    public void resetStats() {
+        lastFailTime = 0;
+        failCount = 0;
+    }
+
     /**
      * Retrieve the current connection state.
      * @return The current connection state.

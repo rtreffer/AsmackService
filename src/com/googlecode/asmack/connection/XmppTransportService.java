@@ -51,6 +51,7 @@ import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
@@ -88,15 +89,15 @@ public class XmppTransportService
          0*60*1000, //    0 fails
          0*60*1000, //    1 fail
          1*60*1000, //    2 fails
-         3*60*1000, //    3 fails
-         5*60*1000, //    4 fails
-        10*60*1000, //    5 fails
-        15*60*1000, //    6 fails
-        20*60*1000, //    7 fails
-        30*60*1000, //    8 fails
-        40*60*1000, //    9 fails
-        50*60*1000, //   10 fails
-        60*60*1000  // > 10 fails
+         2*60*1000, //    3 fails
+         3*60*1000, //    4 fails
+         4*60*1000, //    5 fails
+         5*60*1000, //    6 fails
+         6*60*1000, //    7 fails
+         7*60*1000, //    8 fails
+         8*60*1000, //    9 fails
+         9*60*1000, //   10 fails
+        10*60*1000  // > 10 fails
     };
 
     /**
@@ -388,6 +389,10 @@ public class XmppTransportService
 
         receiver = new SendStanzaReceiver(this);
         registerReceiver(receiver, new IntentFilter(XMPP_STANZA_SEND_INTENT));
+
+        receiver = new ConnectivityReceiver(this);
+        registerReceiver(receiver, new IntentFilter(
+                                    ConnectivityManager.CONNECTIVITY_ACTION));
 
         accountManager.addOnAccountsUpdatedListener(this, null, true);
     }
@@ -709,6 +714,18 @@ public class XmppTransportService
         intent.putExtra("state", "failed");
         intent.addFlags(Intent.FLAG_FROM_BACKGROUND);
         sendBroadcast(intent, XMPP_STANZA_INTENT);
+    }
+
+    /**
+     * Called when the connectivity state changes to online. Enforces a reset
+     * and reconnect of all connections.
+     */
+    public void onConnectivityAvailable() {
+        for (AccountConnection state: connections.values()) {
+            state.resetStats();
+            state.transition(State.Start);
+            state.transition(State.Connecting);
+        }
     }
 
 }
