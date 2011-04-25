@@ -37,16 +37,23 @@
 
 package com.googlecode.asmack.connection.impl;
 
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.SRVRecord;
-import org.xbill.DNS.TextParseException;
-import org.xbill.DNS.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import android.util.Log;
 
 import com.googlecode.asmack.StanzaSink;
 import com.googlecode.asmack.XMPPUtils;
 import com.googlecode.asmack.XmppAccount;
 import com.googlecode.asmack.XmppException;
+import com.googlecode.asmack.dns.Client;
+import com.googlecode.asmack.dns.DNSMessage;
+import com.googlecode.asmack.dns.Record;
+import com.googlecode.asmack.dns.Record.CLASS;
+import com.googlecode.asmack.dns.Record.TYPE;
+import com.googlecode.asmack.dns.record.SRV;
 
 /**
  * Xmpp compliant connection, resolving the XMPP server via DNS/SRV lookups.
@@ -90,39 +97,37 @@ public class XmppConnection extends TcpConnection {
      * @return String[] A host/port pair.
      */
     private static String[] resolveSRV(String domain) {
+        Client client = new Client();
+
+        DNSMessage reply = client.query(domain, TYPE.SRV, CLASS.IN);
+
+        if (reply == null) {
+            Log.w("XMPPConnection", "Resolving SRV " + domain + " failed");
+            return null;
+        }
+
         String bestHost = null;
         int bestPort = -1;
         int bestPriority = Integer.MAX_VALUE;
         int bestWeight = 0;
-        Lookup lookup;
-        try {
-            lookup = new Lookup(domain, Type.SRV);
-            Record recs[] = lookup.run();
-            if (recs == null) {
-                return null;
+
+        List<Record> list = new ArrayList<Record>();
+        list.addAll(Arrays.asList(reply.getAnswers()));
+        Collections.shuffle(list);
+        for (Record rec : list) {
+            SRV srv = (SRV)rec.getPayload();
+            int weight = (int) (srv.getWeight() * srv.getWeight() *
+                                Math.random());
+            int priority = (int) (srv.getPriority() * srv.getPriority() *
+                                  Math.random());
+            if (priority < bestPriority && weight >= bestWeight) {
+                bestPriority = priority;
+                bestWeight = weight;
+                bestHost = srv.getName();
+                bestPort = srv.getPort();
             }
-            for (Record rec : recs) {
-                SRVRecord record = (SRVRecord) rec;
-                if (record != null && record.getTarget() != null) {
-                    int weight = (int) (record.getWeight() * record.getWeight() * Math.random());
-                    if (record.getPriority() < bestPriority) {
-                        bestPriority = record.getPriority();
-                        bestWeight = weight;
-                        bestHost = record.getTarget().toString();
-                        bestPort = record.getPort();
-                    } else if (record.getPriority() == bestPriority) {
-                        if (weight > bestWeight) {
-                            bestPriority = record.getPriority();
-                            bestWeight = weight;
-                            bestHost = record.getTarget().toString();
-                            bestPort = record.getPort();
-                        }
-                    }
-                }
         }
-        } catch (TextParseException e) {
-        } catch (NullPointerException e) {
-                        }
+
         if (bestHost == null) {
             return null;
         }
